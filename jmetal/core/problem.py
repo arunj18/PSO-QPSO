@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Generic, TypeVar, List
 from pathlib import Path
 import random
-
+import numpy as np
 from jmetal.core.solution import BinarySolution, FloatSolution, IntegerSolution
 
 S = TypeVar('S')
@@ -110,13 +110,21 @@ class FloatProblem(Problem[FloatSolution]):
         self.lower_bound = None
         self.upper_bound = None
 
-    def create_solution(self) -> FloatSolution:
-        new_solution = FloatSolution(self.number_of_variables, self.number_of_objectives, self.number_of_constraints,
-                                     self.lower_bound, self.upper_bound)
-        new_solution.variables = \
-            [random.uniform(self.lower_bound[i]*1.0, self.upper_bound[i]*1.0) for i in range(self.number_of_variables)]
-
-        return new_solution
+    def create_solution(self,swarm_size = 1) -> FloatSolution:
+        if swarm_size > 1:
+            return lorenz_map(swarm_size,self.number_of_variables,self.number_of_objectives,self.number_of_constraints,self.lower_bound,self.upper_bound)
+        else:
+            new_solution = FloatSolution(self.number_of_variables, self.number_of_objectives, self.number_of_constraints,
+                                        self.lower_bound, self.upper_bound)
+            #### Chaos initialization start
+            new_solution.variables = \
+            [random.uniform(self.lower_bound[i]*1.0, self.upper_bound[i]*1.0) for i in range(self.number_of_variables)] #lorenz_map(self.lower_bound,self.upper_bound,self.number_of_variables)#[random.uniform(self.lower_bound[i]*1.0, self.upper_bound[i]*1.0) for i in range(self.number_of_variables)] 
+            return new_solution
+            #### Chaos initialization end
+        #print(new_solution.variables)
+        #print(self.number_of_variables)
+        #input()
+        
 
     @abstractmethod
     def evaluate(self, solution: FloatSolution) -> FloatSolution:
@@ -142,10 +150,68 @@ class IntegerProblem(Problem[IntegerSolution]):
 
         new_solution.variables = \
             [int(random.uniform(self.lower_bound[i]*1.0, self.upper_bound[i]*1.0))
-             for i in range(self.number_of_variables)]
+             for i in range(self.number_of_variables)]  
 
         return new_solution
 
     @abstractmethod
     def evaluate(self, solution: IntegerSolution) -> IntegerSolution:
         pass
+
+def lorenz(x, y, z):
+    s = 10.
+    r = 28.
+    b = 8/3.0
+    x_dot = s*(y - x)
+    y_dot = r*x - y - x*z
+    z_dot = x*y - b*z
+    return x_dot, y_dot, z_dot
+
+def lorenz_map(swarm_size,number_of_variables,number_of_objectives,number_of_constraints,lower_bound,upper_bound):
+    chaos_limits = { "x_high" : 22.0 , "x_low" : -22.0 , "y_high" : 30.0 , "y_low" : -30.0 , "z_high" : 55.0 , "z_low" : 0.0 }
+    chaos_set = { "xs_list_1" : [] , "ys_list_1" : [] , "zs_list_1" : [] , "xs_list_2" : [] , "ys_list_2" : [] , "zs_list_2" : [] , }
+    dt = 0.01
+    xs = np.empty((swarm_size+1))
+    ys = np.empty((swarm_size+1))
+    zs = np.empty((swarm_size+1))
+    xs[0], ys[0], zs[0] = (np.random.rand(), np.random.rand(), np.random.rand())
+    for i in range(swarm_size):
+        # Derivatives of the X, Y, Z state
+        x_dot, y_dot, z_dot = lorenz(xs[i], ys[i], zs[i])
+        xs[i + 1] = xs[i] + (x_dot * dt)
+        ys[i + 1] = ys[i] + (y_dot * dt)
+        zs[i + 1] = zs[i] + (z_dot * dt)
+    chaos_set["xs_list_1"].extend(xs)
+    chaos_set["ys_list_1"].extend(ys)
+    chaos_set["zs_list_1"].extend(zs)
+    xs = np.empty((swarm_size+1))
+    ys = np.empty((swarm_size+1))
+    zs = np.empty((swarm_size+1))
+    xs[0], ys[0], zs[0] = (np.random.rand(), np.random.rand(), np.random.rand())
+    for i in range(swarm_size):
+        # Derivatives of the X, Y, Z state
+        x_dot, y_dot, z_dot = lorenz(xs[i], ys[i], zs[i])
+        xs[i + 1] = xs[i] + (x_dot * dt)
+        ys[i + 1] = ys[i] + (y_dot * dt)
+        zs[i + 1] = zs[i] + (z_dot * dt)
+    chaos_set["xs_list_2"].extend(xs)
+    chaos_set["ys_list_2"].extend(ys)
+    chaos_set["zs_list_2"].extend(zs)
+    choices = [ "xs_list_1" , "xs_list_2" , "ys_list_1" , "ys_list_2" , "zs_list_1" , "zs_list_2" ]
+    #print(chaos_set)
+    random.shuffle(choices)
+    result = []
+    for i in range(swarm_size):
+        temp = []
+        for i_1 in range(number_of_variables):
+            
+            temp.append(((chaos_set[choices[i_1]][i] - chaos_limits[choices[i_1][0]+"_low"])/(chaos_limits[choices[i_1][0]+"_high"] - chaos_limits[choices[i_1][0]+"_low"])) * (upper_bound[i_1] - lower_bound[i_1]) + lower_bound[i_1])
+            #print(chaos_set[sel_list[i_1][0]+ "s_list_" + str(sel_list[i_1][1])][i_1])
+        new_solution = FloatSolution(number_of_variables, number_of_objectives, number_of_constraints,
+                                     lower_bound, upper_bound)
+        #print(temp)
+        #input()
+        new_solution.variables = temp
+        result.append(new_solution)
+    return result
+    

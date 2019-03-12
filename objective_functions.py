@@ -184,7 +184,7 @@ def get_modified_drs_objective(radius, density, escape_velocity, surface_tempera
         def __init__(self, rf_path: str = None):
             super(MultiObjectiveCDH, self).__init__(rf_path = rf_path)
             self.number_of_objectives = 2
-            self.number_of_variables = 5
+            self.number_of_variables = 6
             self.number_of_constraints = 0
             self.obj_directions = [self.MINIMIZE, self.MINIMIZE]
             self.obj_labels = ['f(x)', 'f(y)']

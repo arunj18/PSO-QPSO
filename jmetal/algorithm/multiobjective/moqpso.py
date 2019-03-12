@@ -11,6 +11,7 @@ from jmetal.core.algorithm import ParticleSwarmOptimization
 from jmetal.core.operator import Mutation
 from jmetal.core.problem import FloatProblem
 from jmetal.core.solution import FloatSolution
+
 from jmetal.component.comparator import DominanceComparator
 from jmetal.component.quality_indicator import HyperVolume
 
@@ -82,10 +83,15 @@ class MOQPSO(ParticleSwarmOptimization):
 
 
     def create_initial_swarm(self) -> List[FloatSolution]:
-        swarm = []
-        for _ in range(self.swarm_size):
-            swarm.append(self.problem.create_solution())
-    
+        #swarm = lorenz_map(self.swarm_size)
+        '''
+        new_solution = FloatSolution(number_of_variables, number_of_objectives, number_of_constraints,
+                                     lower_bound, upper_bound)
+        
+        
+        '''
+        #for _ in range(self.swarm_size-1):  #### lorenz gives problems, use tent map instead
+        swarm = self.problem.create_solution(self.swarm_size)
         return swarm
 
     def evaluate_swarm(self, swarm: List[FloatSolution]) -> List[FloatSolution]:
@@ -114,13 +120,17 @@ class MOQPSO(ParticleSwarmOptimization):
             particle = swarm[i]
             best_particle = copy(swarm[i].attributes['local_best'])
             best_global = self.select_global_best()
-
+            
             for j in range(particle.number_of_variables):
                 psi_1 = random_uniform(0,1)
                 psi_2 = random_uniform(0,1)
                 P = (psi_1*best_particle.variables[j] + psi_2 * best_global.variables[j])/(psi_1 + psi_2)
                 u = random_uniform(0,1)
                 L = 1/self.g * np.abs(particle.variables[j] - P)
+
+                #levy part here
+
+
                 if random_uniform(0,1) > 0.5:
                     particle.variables[j] = P - self.constrictors[j]*L*np.log(1/u)
                 else:

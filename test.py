@@ -131,10 +131,10 @@ for i in range(df.shape[0]):
     # print("Number of iterations: {}".format(algorithm.evaluations))
 # print(json.dumps(results, indent = 4))
 
-with open("qpso_trappist_modified_crs_2.json", "w") as f:
+with open("qpso_trappist_modified_crs_test.json", "w") as f:
     f.write(json.dumps(results, indent=4))
 
 
 # pareto_front = FrontPlot(plot_title='MOQPSO-DTLZ1-5', axis_labels=problem.obj_labels)
 # pareto_front.plot(front, reference_front=problem.reference_front)
-# pareto_front.to_html(filename='MOQPSO-DTLZ1-5')
+# pareto_front.to_html(filename='MOQPSO-DTLZ1-5') 
