@@ -1,6 +1,6 @@
 from typing import TypeVar, List
 from copy import copy
-from math import sqrt
+from math import sqrt, gamma, pi, sin
 import random
 
 import numpy as np
@@ -28,6 +28,8 @@ class MOQPSO(ParticleSwarmOptimization):
                  mutation: Mutation[FloatSolution],
                  leaders: BoundedArchive[FloatSolution],
                  evaluator: Evaluator[FloatSolution] = SequentialEvaluator[FloatSolution](),
+                 levy: int = 0,
+                 levy_decay: int = 0,
                  reference_point = None):
         """ This class implements the Multi-Objective variant of Quantum Behaved PSO algorithm  as described in
         :param problem: The problem to solve.
@@ -44,6 +46,8 @@ class MOQPSO(ParticleSwarmOptimization):
         self.mutation = mutation
         self.leaders = leaders
         self.evaluator = evaluator
+        self.levy = levy
+        self.levy_decay = levy_decay
 
         self.hypervolume_calculator = HyperVolume(reference_point)
 
@@ -58,6 +62,10 @@ class MOQPSO(ParticleSwarmOptimization):
         self.current_hv = 0
 
         self.hv_changes = []
+
+        self.beta = 3/2
+        self.sigma = (gamma(1 + self.beta) * sin(pi * self.beta / 2) / (gamma((1 + self.beta) / 2) * self.beta * 2 ** ((self.beta - 1) / 2))) ** (1 / self.beta)
+
 
     def init_progress(self) -> None:
         self.evaluations = 0
@@ -129,12 +137,23 @@ class MOQPSO(ParticleSwarmOptimization):
                 L = 1/self.g * np.abs(particle.variables[j] - P)
 
                 #levy part here
-
+                levy_decayed = 1
+                if self.levy :
+                    l_u = np.random.normal(0,1) * self.sigma
+                    l_v = np.random.normal(0,1)
+                    step = l_u / abs(l_v) ** (1 / self.beta)
+                    stepsize = 0.01 * step * (1/(0.0000001 + particle.variables[j] - best_global.variables[j]))
+                    levy_decayed = stepsize
+                    if self.levy_decay:
+                        decay = (1 - (self.evaluations/self.max_evaluations)**self.levy_decay) * random_uniform(0,1)
+                        levy_decayed *= decay
+                    
 
                 if random_uniform(0,1) > 0.5:
-                    particle.variables[j] = P - self.constrictors[j]*L*np.log(1/u)
+                    particle.variables[j] = P - self.constrictors[j]*L*np.log(1/u)*levy_decayed
                 else:
-                    particle.variables[j] = P + self.constrictors[j]*L*np.log(1/u)
+                    particle.variables[j] = P + self.constrictors[j]*L*np.log(1/u)*levy_decayed
+
                 particle.variables[j] = max(self.problem.lower_bound[j],particle.variables[j])
                 particle.variables[j] = min(self.problem.upper_bound[j], particle.variables[j])
 
