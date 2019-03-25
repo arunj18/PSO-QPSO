@@ -174,7 +174,7 @@ def lorenz_map(swarm_size,number_of_variables,number_of_objectives,number_of_con
     xs = np.empty((swarm_size+1))
     ys = np.empty((swarm_size+1))
     zs = np.empty((swarm_size+1))
-    xs[0], ys[0], zs[0] = (np.random.rand(), np.random.rand(), np.random.rand())
+    xs[0], ys[0], zs[0] = (np.random.rand() * (chaos_limits["x_high"]- chaos_limits["x_low"]) + chaos_limits["x_low"], np.random.rand() * (chaos_limits["y_high"]-chaos_limits["y_low"]) + chaos_limits["y_low"], np.random.rand() * (chaos_limits["z_high"]-chaos_limits["z_low"]) + chaos_limits["z_low"])
     for i in range(swarm_size):
         # Derivatives of the X, Y, Z state
         x_dot, y_dot, z_dot = lorenz(xs[i], ys[i], zs[i])
@@ -187,7 +187,7 @@ def lorenz_map(swarm_size,number_of_variables,number_of_objectives,number_of_con
     xs = np.empty((swarm_size+1))
     ys = np.empty((swarm_size+1))
     zs = np.empty((swarm_size+1))
-    xs[0], ys[0], zs[0] = (np.random.rand(), np.random.rand(), np.random.rand())
+    xs[0], ys[0], zs[0] = (np.random.rand() * (chaos_limits["x_high"]- chaos_limits["x_low"]) + chaos_limits["x_low"], np.random.rand() * (chaos_limits["y_high"]-chaos_limits["y_low"]) + chaos_limits["y_low"], np.random.rand() * (chaos_limits["z_high"]-chaos_limits["z_low"]) + chaos_limits["z_low"])
     for i in range(swarm_size):
         # Derivatives of the X, Y, Z state
         x_dot, y_dot, z_dot = lorenz(xs[i], ys[i], zs[i])

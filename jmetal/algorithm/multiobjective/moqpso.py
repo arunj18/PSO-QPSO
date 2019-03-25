@@ -28,9 +28,9 @@ class MOQPSO(ParticleSwarmOptimization):
                  mutation: Mutation[FloatSolution],
                  leaders: BoundedArchive[FloatSolution],
                  evaluator: Evaluator[FloatSolution] = SequentialEvaluator[FloatSolution](),
+                 reference_point = None,
                  levy: int = 0,
-                 levy_decay: int = 0,
-                 reference_point = None):
+                 levy_decay: int = 0):
         """ This class implements the Multi-Objective variant of Quantum Behaved PSO algorithm  as described in
         :param problem: The problem to solve.
         :param swarm_size: Swarm size.
@@ -85,7 +85,7 @@ class MOQPSO(ParticleSwarmOptimization):
     def is_stopping_condition_reached(self) -> bool:
         completion = self.evaluations / float(self.max_evaluations)
         condition1 = self.evaluations >= self.max_evaluations
-        condition2 = completion > 0.01 and (self.current_hv - self.prev_hypervolume) < 10e-10
+        condition2 = completion > 0.05 and (self.current_hv - self.prev_hypervolume) < 10e-6
         self.prev_hypervolume = self.current_hv
         return condition1 or condition2
 
@@ -142,7 +142,7 @@ class MOQPSO(ParticleSwarmOptimization):
                     l_u = np.random.normal(0,1) * self.sigma
                     l_v = np.random.normal(0,1)
                     step = l_u / abs(l_v) ** (1 / self.beta)
-                    stepsize = 0.01 * step * (1/(0.0000001 + particle.variables[j] - best_global.variables[j]))
+                    stepsize = 0.01 * step * (1/(0.000001 + particle.variables[j] - best_global.variables[j]))
                     levy_decayed = stepsize
                     if self.levy_decay:
                         decay = (1 - (self.evaluations/self.max_evaluations)**self.levy_decay) * random_uniform(0,1)
@@ -193,5 +193,5 @@ class MOQPSO(ParticleSwarmOptimization):
 
         return best_global
     
-    def get_hypvervolume_history(self):
+    def get_hypervolume_history(self):
         return self.hv_changes

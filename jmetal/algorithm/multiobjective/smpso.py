@@ -159,7 +159,7 @@ class SMPSO(ParticleSwarmOptimization):
     def update_position(self, swarm: List[FloatSolution]) -> None:
         self.current_hv = self.hypervolume_calculator.compute(self.leaders.solution_list)
         self.hv_history.append(self.current_hv)
-        print("Iteration : {} HV: {}".format(self.evaluations, self.current_hv))
+        #print("Iteration : {} HV: {}".format(self.evaluations, self.current_hv))
         for i in range(self.swarm_size):
             particle = swarm[i]
 
