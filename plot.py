@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-with open("qpso_earth_crs.json", "r") as f:
+with open("qpso_trappist_modified_crs_test_1.json", "r") as f:
 	data = json.loads(f.read())
 
 
@@ -23,5 +23,5 @@ for planet in list(data.keys()):
 	plt.xlabel("interior score")
 	plt.ylabel("surface score")
 	plt.title("Pareto front for {}".format(planet))
-	plt.savefig("{}.png".format(planet.replace(" ","_")))
+	plt.savefig("{}-mod-1.png".format(planet.replace(" ","_")))
 	plt.close()

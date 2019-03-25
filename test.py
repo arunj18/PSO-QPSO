@@ -131,7 +131,7 @@ for i in range(df.shape[0]):
     # print("Number of iterations: {}".format(algorithm.evaluations))
 # print(json.dumps(results, indent = 4))
 
-with open("qpso_trappist_modified_crs_test.json", "w") as f:
+with open("qpso_trappist_modified_crs_test_1.json", "w") as f:
     f.write(json.dumps(results, indent=4))
 
 
