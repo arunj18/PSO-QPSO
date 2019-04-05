@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import json
 
-#trappist-1 h
+# trappist-1 h
 # radius = 0.92
 # density =  0.82
 # escape_velocity = 0.83
@@ -70,7 +70,7 @@ for i in range(df.shape[0]):
     algorithm = MOQPSO(
         problem=problem,
         swarm_size=100,
-        max_evaluations=10000,
+        max_evaluations=100000,
         mutation=Polynomial(probability=0.2, distribution_index=10),
         leaders=CrowdingDistanceArchive(100),
         reference_point=  [0] * problem.number_of_objectives ,
@@ -90,47 +90,43 @@ for i in range(df.shape[0]):
  
     
 
-    #try:
-    algorithm.run()
-    front = algorithm.get_result()
-    pareto_results = []
-    #pareto_front = FrontPlot(plot_title="optimizing for planet : {}".format(p_name), axis_labels=problem.obj_labels)
-    ##pareto_front.plot(front, reference_front=problem.reference_front)
-    #pareto_front.to_html(filename="{}".format(p_name)) 
-    #print(front)
-    #input()
-    for j in range(len(front)):
-        # if(abs(front[i].variables[0] + front[i].variables[1] - 1) > 0.1 or abs(front[i].variables[2] + front[i].variables[3] - 1) > 0.1 ):
-        #     continue
+    try:
+        algorithm.run()
+        front = algorithm.get_result()
+        pareto_results = []
         
-        pareto_results.append(
-                {
-                    "objectives" : { "interior_score" : interior_score(radius,density, front[j].variables[0], front[j].variables[1]),
-                                    "surface_score" : surface_score(escape_velocity, surface_temperature,  front[j].variables[2], front[j].variables[3]),
-                                    },
-                    "variables" : {"alpha" : front[j].variables[0], 
-                                    "beta" : front[j].variables[1],
-                                    "delta" : front[j].variables[2],
-                                    "gamma" : front[j].variables[3],
-                                    "C" : front[j].variables[4],
-                                    #"e" : front[j].variables[5]
-                                    }
-                }
-
-            )
-
-    if len(pareto_results) == 0:
-        print("{} is empty".format(p_names[i]))
-        empty_list.append(p_names[i])
-    results[p_name] = { 
-                        "pareto_front": pareto_results 
+        for j in range(len(front)):
+            # if(abs(front[i].variables[0] + front[i].variables[1] - 1) > 0.1 or abs(front[i].variables[2] + front[i].variables[3] - 1) > 0.1 ):
+            #     continue
+            
+            pareto_results.append(
+                    {
+                        "objectives" : { "interior_score" : interior_score(radius,density, front[j].variables[0], front[j].variables[1]),
+                                        "surface_score" : surface_score(escape_velocity, surface_temperature,  front[j].variables[2], front[j].variables[3]),
+                                        },
+                        "variables" : {"alpha" : front[j].variables[0], 
+                                        "beta" : front[j].variables[1],
+                                        "delta" : front[j].variables[2],
+                                        "gamma" : front[j].variables[3],
+                                        "C" : front[j].variables[4],
+                                        #"e" : front[j].variables[5]
+                                        }
                     }
+
+                )
+
+        if len(pareto_results) == 0:
+            print("{} is empty".format(p_names[i]))
+            empty_list.append(p_names[i])
+        results[p_name] = { 
+                            "pareto_front": pareto_results 
+                        }
     # hyper_volume = HyperVolume(reference_point = [1.0,1.0])
         # hv = hyper_volume.compute(front)
         # print("Hyper volume: {}".format(hv))
-    #except:
-    #    print("ERROR")
-    #    continue
+    except:
+       print("ERROR")
+       continue
         
     # print("Number of iterations: {}".format(algorithm.evaluations))
 # print(json.dumps(results, indent = 4))

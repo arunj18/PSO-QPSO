@@ -30,7 +30,7 @@ def get_drs_objective(radius, density, escape_velocity, surface_temperature):
             super(MultiObjectiveCDH, self).__init__(rf_path = rf_path)
             self.number_of_objectives = 2
             self.number_of_variables = 5
-            self.number_of_constraints = 0
+            self.number_of_constraints = 2
             self.obj_directions = [self.MINIMIZE, self.MINIMIZE]
             self.obj_labels = ['f(x)', 'f(y)']
 
@@ -54,6 +54,30 @@ def get_drs_objective(radius, density, escape_velocity, surface_temperature):
             solution.objectives[0] = f1([alpha, beta])
             solution.objectives[1] = f2([gamma, delta])
             return solution
+
+        def evaluate_constraints(self,solution: FloatSolution) -> None:
+            constraints = [0.0 for _ in range(self.number_of_constraints)]
+
+            alpha = solution.variables[0]
+            beta = solution.variables[1]
+            delta = solution.variables[2]
+            gamma = solution.variables[3]
+
+            constraints[0] = (alpha + beta - 1) + error
+            constraints[1] = (gamma + delta - 1) + error
+
+
+            overall_constraint_violation = 0.0
+            number_of_violated_constraints = 0.0
+
+            for constrain in constraints:
+                if constrain > 0.0:
+                    overall_constraint_violation += constrain
+                    number_of_violated_constraints += 1
+
+            # print("{} {}".format(overall_constraint_violation, number_of_violated_constraints))
+            solution.attributes['overall_constraint_violation'] = overall_constraint_violation
+            solution.attributes['number_of_violated_constraints'] = number_of_violated_constraints
 
         # def evaluate_constraints(self,solution: FloatSolution) -> None:
         #     constraints = [0.0 for _ in range(self.number_of_constraints)]
@@ -108,7 +132,7 @@ def get_crs_objective(radius, density, escape_velocity, surface_temperature):
             super(MultiObjectiveCDH, self).__init__(rf_path = rf_path)
             self.number_of_objectives = 2
             self.number_of_variables = 5
-            self.number_of_constraints = 0
+            self.number_of_constraints = 4
             self.obj_directions = [self.MINIMIZE, self.MINIMIZE]
             self.obj_labels = ['f(x)', 'f(y)']
 
