@@ -2,7 +2,7 @@ from jmetal.algorithm import SMPSO, MOQPSO
 from jmetal.component import CrowdingDistanceArchive
 from jmetal.problem import DTLZ1
 from jmetal.operator import Polynomial,SBX, BinaryTournamentSelection, Uniform
-from objective_functions import get_crs_objective, get_drs_objective, get_modified_drs_objective, get_modified_crs_objective,interior_score, surface_score
+from objective_functions import get_crs_objective, get_drs_objective, get_modified_drs_objective, get_modified_crs_objective,interior_score, surface_score,get_ceesa_drs,ceesa_score
 from matplotlib import pyplot as plt 
 import pandas as pd
 import numpy as np
@@ -32,69 +32,74 @@ radii = df["P. Radius (EU)"].tolist()
 densities = df["P. Density (EU)"].tolist()
 esc_velocities = df["P. Esc Vel (EU)"].tolist()
 surf_temps = (df["P. Ts Mean (K)"]/ 288.0).tolist()
-
+orb_eccentricities = df["P. Eccentricity"].tolist()
 results = {}
 
 print("Number of planets {}".format(df.shape[0]))
+for eval in range(79,80):
+    #print(eval)
+    empty_list = []
+    for i in range(df.shape[0]):
 
-empty_list = []
-for i in range(df.shape[0]):
+        p_name = p_names[i]
 
-    p_name = p_names[i]
+        radius = radii[i]
+        density = densities[i]
+        escape_velocity = esc_velocities[i]
+        surface_temperature = round(surf_temps[i],2)
+        orb_eccentricity = orb_eccentricities[i]
 
-    radius = radii[i]
-    density = densities[i]
-    escape_velocity = esc_velocities[i]
-    surface_temperature = round(surf_temps[i],2)
-
-    # p_name = "Earth"
-    # radius = 1.0
-    # density = 1.0
-    # escape_velocity = 1.0
-    # surface_temperature = 1.0
+        # p_name = "Earth"
+        # radius = 1.0
+        # density = 1.0
+        # escape_velocity = 1.0
+        # surface_temperature = 1.0
 
 
 
-    print("")
-    print("optimizing for planet : {}".format(p_name))
-    print("radius : {}".format(radius))
-    print("density: {}".format(density))
-    print("escape velocity: {}".format(escape_velocity))
-    print("surface temperature : {}".format(surface_temperature))
-    print("")
+        print("")
+        print("optimizing for planet : {}".format(p_name))
+        print("radius : {}".format(radius))
+        print("density: {}".format(density))
+        print("escape velocity: {}".format(escape_velocity))
+        print("surface temperature : {}".format(surface_temperature))
+        print("eccentricity : {}".format(orb_eccentricity))
+        print("")
 
-    problem = get_crs_objective(radius, density, escape_velocity, surface_temperature)
+        problem = get_crs_objective(radius, density, escape_velocity, surface_temperature)
+        
+        # problem = get_modified_drs_objective(radius, density, escape_velocity,surface_temperature)
+
+        algorithm = MOQPSO(
+            problem=problem,
+            swarm_size=25,
+            max_evaluations=eval,
+            mutation=Polynomial(probability=0.2, distribution_index=10),
+            leaders=CrowdingDistanceArchive(100),
+            reference_point=  [0] * problem.number_of_objectives ,
+            levy = 1,
+            levy_decay= 1
+        )
+        # #algorithm.observable.register(observer=VisualizerObserver(reference_front=problem.reference_front))
+
+        # algorithm = SMPSO(
+        #         problem=problem,
+        #         swarm_size=25,
+        #         max_evaluations=100,
+        #         mutation=Polynomial(probability=0.2, distribution_index=10),
+        #         leaders=CrowdingDistanceArchive(100),
+        #         reference_point=[0] * problem.number_of_objectives
+        #     )
     
-    # problem = get_modified_drs_objective(radius, density, escape_velocity,surface_temperature)
+        
 
-    algorithm = MOQPSO(
-        problem=problem,
-        swarm_size=100,
-        max_evaluations=100000,
-        mutation=Polynomial(probability=0.2, distribution_index=10),
-        leaders=CrowdingDistanceArchive(100),
-        reference_point=  [0] * problem.number_of_objectives ,
-        levy = 1,
-        levy_decay= 1
-    )
-    #algorithm.observable.register(observer=VisualizerObserver(reference_front=problem.reference_front))
-
-    #algorithm = SMPSO(
-    #         problem=problem,
-    #         swarm_size=100,
-    #         max_evaluations=100000,
-    #         mutation=Polynomial(probability=0.2, distribution_index=10),
-    #         leaders=CrowdingDistanceArchive(100),
-    #         reference_point=[0] * problem.number_of_objectives
-    #     )
- 
-    
-
-    try:
+        # try:
         algorithm.run()
         front = algorithm.get_result()
+        print("evaluations",algorithm.evaluations)
+        print("hypervolume",algorithm.get_hypervolume_history())
+        #input()
         pareto_results = []
-        
         for j in range(len(front)):
             # if(abs(front[i].variables[0] + front[i].variables[1] - 1) > 0.1 or abs(front[i].variables[2] + front[i].variables[3] - 1) > 0.1 ):
             #     continue
@@ -110,11 +115,12 @@ for i in range(df.shape[0]):
                                         "gamma" : front[j].variables[3],
                                         "C" : front[j].variables[4],
                                         #"e" : front[j].variables[5]
-                                        }
+                                    }
                     }
 
                 )
-
+            #print(pareto_results)
+        
         if len(pareto_results) == 0:
             print("{} is empty".format(p_names[i]))
             empty_list.append(p_names[i])
@@ -122,17 +128,17 @@ for i in range(df.shape[0]):
                             "pareto_front": pareto_results 
                         }
     # hyper_volume = HyperVolume(reference_point = [1.0,1.0])
-        # hv = hyper_volume.compute(front)
-        # print("Hyper volume: {}".format(hv))
-    except:
-       print("ERROR")
-       continue
-        
-    # print("Number of iterations: {}".format(algorithm.evaluations))
-# print(json.dumps(results, indent = 4))
+            # hv = hyper_volume.compute(front)
+            # print("Hyper volume: {}".format(hv))
+        # except:
+        #    print("ERROR")
+        #    continue
+            
+        # print("Number of iterations: {}".format(algorithm.evaluations))
+    # print(json.dumps(results, indent = 4))
 
-with open("qpso_trappist_modified_crs_test_integrated.json", "w") as f:
-    f.write(json.dumps(results, indent=4))
+    with open("./iteration-wise/qpso_trappist-cdhs-crs-iteration"+str(eval)+".json", "w") as f:
+        f.write(json.dumps(results, indent=4))
 
 
 # pareto_front = FrontPlot(plot_title='MOQPSO-DTLZ1-5', axis_labels=problem.obj_labels)

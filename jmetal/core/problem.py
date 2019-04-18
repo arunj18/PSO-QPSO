@@ -169,42 +169,33 @@ def lorenz(x, y, z):
 
 def lorenz_map(swarm_size,number_of_variables,number_of_objectives,number_of_constraints,lower_bound,upper_bound):
     chaos_limits = { "x_high" : 22.0 , "x_low" : -22.0 , "y_high" : 30.0 , "y_low" : -30.0 , "z_high" : 55.0 , "z_low" : 0.0 }
-    chaos_set = { "xs_list_1" : [] , "ys_list_1" : [] , "zs_list_1" : [] , "xs_list_2" : [] , "ys_list_2" : [] , "zs_list_2" : [] , }
-    dt = 0.01
-    xs = np.empty((swarm_size+1))
-    ys = np.empty((swarm_size+1))
-    zs = np.empty((swarm_size+1))
-    xs[0], ys[0], zs[0] = (np.random.rand() * (chaos_limits["x_high"]- chaos_limits["x_low"]) + chaos_limits["x_low"], np.random.rand() * (chaos_limits["y_high"]-chaos_limits["y_low"]) + chaos_limits["y_low"], np.random.rand() * (chaos_limits["z_high"]-chaos_limits["z_low"]) + chaos_limits["z_low"])
-    for i in range(swarm_size):
-        # Derivatives of the X, Y, Z state
-        x_dot, y_dot, z_dot = lorenz(xs[i], ys[i], zs[i])
-        xs[i + 1] = xs[i] + (x_dot * dt)
-        ys[i + 1] = ys[i] + (y_dot * dt)
-        zs[i + 1] = zs[i] + (z_dot * dt)
-    chaos_set["xs_list_1"].extend(xs)
-    chaos_set["ys_list_1"].extend(ys)
-    chaos_set["zs_list_1"].extend(zs)
-    xs = np.empty((swarm_size+1))
-    ys = np.empty((swarm_size+1))
-    zs = np.empty((swarm_size+1))
-    xs[0], ys[0], zs[0] = (np.random.rand() * (chaos_limits["x_high"]- chaos_limits["x_low"]) + chaos_limits["x_low"], np.random.rand() * (chaos_limits["y_high"]-chaos_limits["y_low"]) + chaos_limits["y_low"], np.random.rand() * (chaos_limits["z_high"]-chaos_limits["z_low"]) + chaos_limits["z_low"])
-    for i in range(swarm_size):
-        # Derivatives of the X, Y, Z state
-        x_dot, y_dot, z_dot = lorenz(xs[i], ys[i], zs[i])
-        xs[i + 1] = xs[i] + (x_dot * dt)
-        ys[i + 1] = ys[i] + (y_dot * dt)
-        zs[i + 1] = zs[i] + (z_dot * dt)
-    chaos_set["xs_list_2"].extend(xs)
-    chaos_set["ys_list_2"].extend(ys)
-    chaos_set["zs_list_2"].extend(zs)
-    choices = [ "xs_list_1" , "xs_list_2" , "ys_list_1" , "ys_list_2" , "zs_list_1" , "zs_list_2" ]
+    lorenz_sets = number_of_variables//3 + 1
+    chaos_set = {}
+    for it in range(lorenz_sets):
+        chaos_set["xs_list_" + str(it+1)] = []
+        chaos_set["ys_list_" + str(it+1)] = []
+        chaos_set["zs_list_" + str(it+1)] = []
+        dt = 0.01
+        xs = np.empty((swarm_size+1))
+        ys = np.empty((swarm_size+1))
+        zs = np.empty((swarm_size+1))
+        xs[0], ys[0], zs[0] = (np.random.rand(), np.random.rand(), np.random.rand())
+        for i in range(swarm_size):
+            # Derivatives of the X, Y, Z state
+            x_dot, y_dot, z_dot = lorenz(xs[i], ys[i], zs[i])
+            xs[i + 1] = xs[i] + (x_dot * dt)
+            ys[i + 1] = ys[i] + (y_dot * dt)
+            zs[i + 1] = zs[i] + (z_dot * dt)
+        chaos_set["xs_list_" + str(it+1)].extend(xs)
+        chaos_set["ys_list_" + str(it+1)].extend(ys)
+        chaos_set["zs_list_" + str(it+1)].extend(zs)
+    choices = list(chaos_set.keys())
     #print(chaos_set)
     random.shuffle(choices)
     result = []
     for i in range(swarm_size):
         temp = []
-        for i_1 in range(number_of_variables):
-            
+        for i_1 in range(number_of_variables):       
             temp.append(((chaos_set[choices[i_1]][i] - chaos_limits[choices[i_1][0]+"_low"])/(chaos_limits[choices[i_1][0]+"_high"] - chaos_limits[choices[i_1][0]+"_low"])) * (upper_bound[i_1] - lower_bound[i_1]) + lower_bound[i_1])
             #print(chaos_set[sel_list[i_1][0]+ "s_list_" + str(sel_list[i_1][1])][i_1])
         new_solution = FloatSolution(number_of_variables, number_of_objectives, number_of_constraints,
@@ -213,5 +204,7 @@ def lorenz_map(swarm_size,number_of_variables,number_of_objectives,number_of_con
         #input()
         new_solution.variables = temp
         result.append(new_solution)
+        #print(temp)
+    #print(result)
     return result
     

@@ -4,6 +4,7 @@ from math import sqrt, gamma, pi, sin
 import random
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from jmetal.component.archive import BoundedArchive
 from jmetal.component.evaluator import Evaluator, SequentialEvaluator
@@ -48,11 +49,11 @@ class MOQPSO(ParticleSwarmOptimization):
         self.evaluator = evaluator
         self.levy = levy
         self.levy_decay = levy_decay
-
+        self.prev_gbest = None
         self.hypervolume_calculator = HyperVolume(reference_point)
 
         self.evaluations = 0
-
+        self.beta_swarm = 1.2
         self.g = 0.95
 
         self.dominance_comparator = DominanceComparator()
@@ -85,7 +86,44 @@ class MOQPSO(ParticleSwarmOptimization):
     def is_stopping_condition_reached(self) -> bool:
         completion = self.evaluations / float(self.max_evaluations)
         condition1 = self.evaluations >= self.max_evaluations
-        condition2 = completion > 0.05 and (self.current_hv - self.prev_hypervolume) < 10e-6
+        tolerance_cond = False
+        '''fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        x,y,z = [],[],[]
+        for particle in self.swarm:
+            x.append(particle.variables[0])
+            y.append(particle.variables[1])
+            z.append(particle.objectives[0])
+        ax.scatter(x, y, z, c='r', marker='o')
+        plt.show()
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        x,y,z = [],[],[]
+        for particle in self.swarm:
+            x.append(particle.variables[2])
+            y.append(particle.variables[3])
+            z.append(particle.objectives[1])
+        ax.scatter(x, y, z, c='r', marker='o')
+        plt.show()
+        '''
+        self.beta_swarm = 1.2 - (self.evaluations/self.max_evaluations)*(0.7)
+        if(self.prev_gbest is not None):
+            gbest = self.evaluator.evaluate([self.prev_gbest],self.problem)
+            gbest = gbest[0]
+            alpha = 1/gbest.number_of_objectives
+            old_score = 0
+            for i in range(gbest.number_of_objectives):
+                old_score+= alpha*gbest.objectives[i]
+            gbest = self.select_global_best()
+            gbest = self.evaluator.evaluate([gbest],self.problem)
+            gbest = gbest[0]
+            new_score = 0
+            for i in range(gbest.number_of_objectives):
+                new_score+= alpha*gbest.objectives[i]
+            if np.abs(new_score - old_score) < 10e-6:
+                tolerance_cond = True
+            
+        condition2 = completion > 0.1 and tolerance_cond
         self.prev_hypervolume = self.current_hv
         return condition1 or condition2
 
@@ -98,7 +136,6 @@ class MOQPSO(ParticleSwarmOptimization):
         
         
         '''
-        #for _ in range(self.swarm_size-1):  #### lorenz gives problems, use tent map instead
         swarm = self.problem.create_solution(self.swarm_size)
         return swarm
 
@@ -120,29 +157,42 @@ class MOQPSO(ParticleSwarmOptimization):
         pass
 
     def update_position(self, swarm: List[FloatSolution]) -> None:
-        best_global = self.select_global_best()
+        self.best_global = self.select_global_best()
+        #print(self.leaders.solution_list)
+        #input()
+        self.prev_gbest = self.best_global
         self.current_hv = self.hypervolume_calculator.compute(self.leaders.solution_list)
         self.hv_changes.append(self.current_hv)
         # print("Iteration : {} HV: {}".format(self.evaluations, self.current_hv))
+        mbest = []
+        for i in range(swarm[0].number_of_variables):
+            mbest.append([])
+        for i in range(self.swarm_size):
+            particle = swarm[i]
+            for vari in range(swarm[i].number_of_variables):
+                mbest[vari].append(swarm[i].variables[vari])
+        for i in range(len(mbest)):
+            mbest[i] = sum(mbest[i])/self.swarm_size
+
         for i in range(self.swarm_size):
             particle = swarm[i]
             best_particle = copy(swarm[i].attributes['local_best'])
-            best_global = self.select_global_best()
+            #best_global = self.select_global_best()
+            #rint(best_global)
             
             for j in range(particle.number_of_variables):
                 psi_1 = random_uniform(0,1)
                 psi_2 = random_uniform(0,1)
-                P = (psi_1*best_particle.variables[j] + psi_2 * best_global.variables[j])/(psi_1 + psi_2)
+                P = (psi_1*best_particle.variables[j] + psi_2 * self.best_global.variables[j])/(psi_1 + psi_2)
                 u = random_uniform(0,1)
-                L = 1/self.g * np.abs(particle.variables[j] - P)
-
+        
                 #levy part here
                 levy_decayed = 1
                 if self.levy :
                     l_u = np.random.normal(0,1) * self.sigma
                     l_v = np.random.normal(0,1)
                     step = l_u / abs(l_v) ** (1 / self.beta)
-                    stepsize = 0.01 * step * (1/(0.000001 + particle.variables[j] - best_global.variables[j]))
+                    stepsize = 0.01 * step * (1/(0.000001 + particle.variables[j] - self.best_global.variables[j]))
                     levy_decayed = stepsize
                     if self.levy_decay:
                         decay = (1 - (self.evaluations/self.max_evaluations)**self.levy_decay) * random_uniform(0,1)
@@ -150,12 +200,13 @@ class MOQPSO(ParticleSwarmOptimization):
                     
 
                 if random_uniform(0,1) > 0.5:
-                    particle.variables[j] = P - self.constrictors[j]*L*np.log(1/u)*levy_decayed
+                    particle.variables[j] = P - self.beta_swarm*self.constrictors[j]*mbest[j]*np.log(1/u)*levy_decayed
                 else:
-                    particle.variables[j] = P + self.constrictors[j]*L*np.log(1/u)*levy_decayed
+                    particle.variables[j] = P + self.beta_swarm*self.constrictors[j]*mbest[j]*np.log(1/u)*levy_decayed
 
                 particle.variables[j] = max(self.problem.lower_bound[j],particle.variables[j])
                 particle.variables[j] = min(self.problem.upper_bound[j], particle.variables[j])
+        
 
     def perturbation(self, swarm: List[FloatSolution]) -> None:
         for i in range(self.swarm_size):

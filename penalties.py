@@ -31,7 +31,7 @@ def l2_equality_penalty(diff, tolerance):
         return 3*k*(abs_diff)
 
 def l2_inequality_penalty(x, error):
-    k = 10e100 # penalty factor
+    k = 10e1000 # penalty factor
     if x + error <= 0:
         return 0
     else:
@@ -39,7 +39,7 @@ def l2_inequality_penalty(x, error):
         return k*(abs_x**2)
 
 def modified_inequality_penalty(x):
-    k = 10e100
+    k = 10e10000
     e = 10e-12
     if x - e < 0:
         return 0
