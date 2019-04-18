@@ -36,7 +36,7 @@ orb_eccentricities = df["P. Eccentricity"].tolist()
 results = {}
 
 print("Number of planets {}".format(df.shape[0]))
-for eval in range(79,80):
+for eval in range(100,101):
     #print(eval)
     empty_list = []
     for i in range(df.shape[0]):

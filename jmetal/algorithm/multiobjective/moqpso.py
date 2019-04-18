@@ -192,11 +192,10 @@ class MOQPSO(ParticleSwarmOptimization):
                     l_u = np.random.normal(0,1) * self.sigma
                     l_v = np.random.normal(0,1)
                     step = l_u / abs(l_v) ** (1 / self.beta)
-                    stepsize = 0.01 * step * (1/(0.000001 + particle.variables[j] - self.best_global.variables[j]))
+                    stepsize = 0.01 * step * (1/(0.000001 + particle.variables[j] - mbest[j]))
                     levy_decayed = stepsize
                     if self.levy_decay:
-                        decay = (1 - (self.evaluations/self.max_evaluations)**self.levy_decay) * random_uniform(0,1)
-                        levy_decayed *= decay
+                        levy_decayed = 5*(0.001)**(self.evaluations/self.max_evaluations) + 1
                     
 
                 if random_uniform(0,1) > 0.5:
