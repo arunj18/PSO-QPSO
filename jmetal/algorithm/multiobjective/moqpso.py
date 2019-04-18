@@ -170,7 +170,7 @@ class MOQPSO(ParticleSwarmOptimization):
         for i in range(self.swarm_size):
             particle = swarm[i]
             for vari in range(swarm[i].number_of_variables):
-                mbest[vari].append(swarm[i].variables[vari])
+                mbest[vari].append(copy(swarm[i].attributes['local_best'][vari]))
         for i in range(len(mbest)):
             mbest[i] = sum(mbest[i])/self.swarm_size
 
