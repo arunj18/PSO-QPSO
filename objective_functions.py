@@ -37,8 +37,8 @@ def get_drs_objective(radius, density, escape_velocity, surface_temperature):
             self.obj_directions = [self.MINIMIZE, self.MINIMIZE]
             self.obj_labels = ['f(x)', 'f(y)']
 
-            self.lower_bound = [-2.0 for _ in range(self.number_of_variables)]
-            self.upper_bound = [2.0 for _ in range(self.number_of_variables)]
+            self.lower_bound = [0.0 for _ in range(self.number_of_variables)]
+            self.upper_bound = [1.0 for _ in range(self.number_of_variables)]
 
             self.lower_bound[-1] = 0.0
             self.upper_bound[-1] = 5.0

@@ -175,7 +175,7 @@ def lorenz_map(swarm_size,number_of_variables,number_of_objectives,number_of_con
         chaos_set["xs_list_" + str(it+1)] = []
         chaos_set["ys_list_" + str(it+1)] = []
         chaos_set["zs_list_" + str(it+1)] = []
-        dt = 0.01
+        dt = 0.02
         xs = np.empty((swarm_size+1))
         ys = np.empty((swarm_size+1))
         zs = np.empty((swarm_size+1))
@@ -197,6 +197,8 @@ def lorenz_map(swarm_size,number_of_variables,number_of_objectives,number_of_con
         temp = []
         for i_1 in range(number_of_variables):       
             temp.append(((chaos_set[choices[i_1]][i] - chaos_limits[choices[i_1][0]+"_low"])/(chaos_limits[choices[i_1][0]+"_high"] - chaos_limits[choices[i_1][0]+"_low"])) * (upper_bound[i_1] - lower_bound[i_1]) + lower_bound[i_1])
+            #print(chaos_set[choices[i_1]][i],chaos_limits[choices[i_1][0]+"_low"],(chaos_limits[choices[i_1][0]+"_high"],upper_bound[i_1],lower_bound[i_1]),((chaos_set[choices[i_1]][i] - chaos_limits[choices[i_1][0]+"_low"])/(chaos_limits[choices[i_1][0]+"_high"] - chaos_limits[choices[i_1][0]+"_low"])) * (upper_bound[i_1] - lower_bound[i_1]) + lower_bound[i_1])
+            #input()
             #print(chaos_set[sel_list[i_1][0]+ "s_list_" + str(sel_list[i_1][1])][i_1])
         new_solution = FloatSolution(number_of_variables, number_of_objectives, number_of_constraints,
                                      lower_bound, upper_bound)
@@ -206,5 +208,6 @@ def lorenz_map(swarm_size,number_of_variables,number_of_objectives,number_of_con
         result.append(new_solution)
         #print(temp)
     #print(result)
+
     return result
     

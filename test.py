@@ -34,9 +34,9 @@ esc_velocities = df["P. Esc Vel (EU)"].tolist()
 surf_temps = (df["P. Ts Mean (K)"]/ 288.0).tolist()
 orb_eccentricities = df["P. Eccentricity"].tolist()
 results = {}
-
+complete_results = {}
 print("Number of planets {}".format(df.shape[0]))
-for eval in range(100,101):
+for eval in [200 for x in range(30)]:
     #print(eval)
     empty_list = []
     for i in range(df.shape[0]):
@@ -56,7 +56,8 @@ for eval in range(100,101):
         # surface_temperature = 1.0
 
 
-
+        if(p_name not in list(complete_results.keys())):
+            complete_results[p_name] = []
         print("")
         print("optimizing for planet : {}".format(p_name))
         print("radius : {}".format(radius))
@@ -96,6 +97,7 @@ for eval in range(100,101):
         # try:
         algorithm.run()
         front = algorithm.get_result()
+        complete_results[p_name].append(algorithm.evaluations)
         print("evaluations",algorithm.evaluations)
         print("hypervolume",algorithm.get_hypervolume_history())
         #input()
@@ -137,10 +139,13 @@ for eval in range(100,101):
         # print("Number of iterations: {}".format(algorithm.evaluations))
     # print(json.dumps(results, indent = 4))
 
-    with open("./iteration-wise/qpso_trappist-cdhs-crs-iteration"+str(eval)+".json", "w") as f:
+    with open("./iteration-wise/qpso_trappist-cdhs-drs-iteration"+str(eval)+".json", "w") as f:
         f.write(json.dumps(results, indent=4))
 
 
 # pareto_front = FrontPlot(plot_title='MOQPSO-DTLZ1-5', axis_labels=problem.obj_labels)
 # pareto_front.plot(front, reference_front=problem.reference_front)
 # pareto_front.to_html(filename='MOQPSO-DTLZ1-5') 
+for i in list(complete_results.keys()):
+    complete_results[i] = sum(complete_results[i])/30
+print(complete_results)

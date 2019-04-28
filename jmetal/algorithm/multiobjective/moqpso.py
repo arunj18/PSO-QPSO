@@ -5,6 +5,9 @@ import random
 
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D 
+import matplotlib.animation as animation
+import matplotlib
 
 from jmetal.component.archive import BoundedArchive
 from jmetal.component.evaluator import Evaluator, SequentialEvaluator
@@ -55,7 +58,8 @@ class MOQPSO(ParticleSwarmOptimization):
         self.evaluations = 0
         self.beta_swarm = 1.2
         self.g = 0.95
-
+        self.particle_history = {}
+        self.objective_history = {0: [], 1:[]}
         self.dominance_comparator = DominanceComparator()
         self.constrictors = [(problem.upper_bound[i] - problem.lower_bound[i]) / 5000.0 for i in range(problem.number_of_variables)]
 
@@ -106,6 +110,17 @@ class MOQPSO(ParticleSwarmOptimization):
         ax.scatter(x, y, z, c='r', marker='o')
         plt.show()
         '''
+        for variableno in range(4):
+            if variableno not in list(self.particle_history.keys()):
+                self.particle_history[variableno] = []
+            temp = []
+            for particle in self.swarm:
+                temp.append(particle.variables[variableno])
+            self.particle_history[variableno].append(temp)
+        temp1 = []
+        for particle in self.swarm:
+            temp1.append(particle.objectives[0])
+        self.objective_history[0].append(temp1)
         self.beta_swarm = 1.2 - (self.evaluations/self.max_evaluations)*(0.7)
         if(self.prev_gbest is not None):
             gbest = self.evaluator.evaluate([self.prev_gbest],self.problem)
@@ -122,9 +137,29 @@ class MOQPSO(ParticleSwarmOptimization):
                 new_score+= alpha*gbest.objectives[i]
             if np.abs(new_score - old_score) < 10e-6:
                 tolerance_cond = True
-            
         condition2 = completion > 0.1 and tolerance_cond
         self.prev_hypervolume = self.current_hv
+        if condition1 or condition2:
+            xs = np.array(self.particle_history[0])
+            ys = np.array(self.particle_history[1])
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            sct, = ax.plot([], [], "o", markersize=2)
+            def update(ifrm, xa, ya):
+                sct.set_data(xa[ifrm], ya[ifrm])
+            ax.set_xlim(-0.2,1.2)
+            ax.set_ylim(-0.2,1.2)
+            ani = animation.FuncAnimation(fig, update, self.evaluations, fargs=(xs,ys), interval=1000/2, repeat = False)
+            plt.show()
+            xs = np.array(self.particle_history[2])
+            ys = np.array(self.particle_history[3])
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            sct, = ax.plot([], [], "o", markersize=2)
+            ax.set_xlim(-0.2,1.2)
+            ax.set_ylim(-0.2,1.2)
+            ani = animation.FuncAnimation(fig, update, self.evaluations, fargs=(xs,ys), interval=1000/2, repeat = False)
+            plt.show()
         return condition1 or condition2
 
 
@@ -176,6 +211,7 @@ class MOQPSO(ParticleSwarmOptimization):
 
         for i in range(self.swarm_size):
             particle = swarm[i]
+            #eu_dist = np.linalg.norm(np.array(particle.variables)-np.array(self.prev_gbest.variables))
             best_particle = copy(swarm[i].attributes['local_best'])
             #best_global = self.select_global_best()
             #rint(best_global)
@@ -192,10 +228,12 @@ class MOQPSO(ParticleSwarmOptimization):
                     l_u = np.random.normal(0,1) * self.sigma
                     l_v = np.random.normal(0,1)
                     step = l_u / abs(l_v) ** (1 / self.beta)
-                    stepsize = 0.01 * step * (1/(0.000001 + particle.variables[j] - mbest[j]))
+                    stepsize = 0.01 * step * (1/(0.000001 + particle.variables[j] - self.prev_gbest.variables[j]))
                     levy_decayed = stepsize
                     if self.levy_decay:
-                        levy_decayed = 5*(0.001)**(self.evaluations/self.max_evaluations) + 1
+                        levy_decayed *= 5*(0.001)**(self.evaluations/(self.max_evaluations*0.5)) + 1
+                        if self.evaluations == int(self.max_evaluations*0.5):
+                            levy_decayed = 1
                     
 
                 if random_uniform(0,1) > 0.5:
