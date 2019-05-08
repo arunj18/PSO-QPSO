@@ -149,7 +149,7 @@ class MOQPSO(ParticleSwarmOptimization):
                 sct.set_data(xa[ifrm], ya[ifrm])
             ax.set_xlim(-0.2,1.2)
             ax.set_ylim(-0.2,1.2)
-            ani = animation.FuncAnimation(fig, update, self.evaluations, fargs=(xs,ys), interval=1000/2, repeat = False)
+            ani = animation.FuncAnimation(fig, update, self.evaluations, fargs=(xs,ys), interval=1000/1, repeat = False)
             plt.show()
             xs = np.array(self.particle_history[2])
             ys = np.array(self.particle_history[3])
@@ -158,7 +158,7 @@ class MOQPSO(ParticleSwarmOptimization):
             sct, = ax.plot([], [], "o", markersize=2)
             ax.set_xlim(-0.2,1.2)
             ax.set_ylim(-0.2,1.2)
-            ani = animation.FuncAnimation(fig, update, self.evaluations, fargs=(xs,ys), interval=1000/2, repeat = False)
+            ani = animation.FuncAnimation(fig, update, self.evaluations, fargs=(xs,ys), interval=1000/1, repeat = False)
             plt.show()
         return condition1 or condition2
 
@@ -232,8 +232,8 @@ class MOQPSO(ParticleSwarmOptimization):
                     levy_decayed = stepsize
                     if self.levy_decay:
                         levy_decayed *= 5*(0.001)**(self.evaluations/(self.max_evaluations*0.5)) + 1
-                        if self.evaluations == int(self.max_evaluations*0.5):
-                            levy_decayed = 1
+                        #if self.evaluations == int(self.max_evaluations*0.5):
+                        #    levy_decayed = 1
                     
 
                 if random_uniform(0,1) > 0.5:

@@ -36,7 +36,7 @@ orb_eccentricities = df["P. Eccentricity"].tolist()
 results = {}
 complete_results = {}
 print("Number of planets {}".format(df.shape[0]))
-for eval in [200 for x in range(30)]:
+for eval in [200 for x in range(1)]:
     #print(eval)
     empty_list = []
     for i in range(df.shape[0]):
@@ -73,7 +73,7 @@ for eval in [200 for x in range(30)]:
 
         algorithm = MOQPSO(
             problem=problem,
-            swarm_size=25,
+            swarm_size=1000,
             max_evaluations=eval,
             mutation=Polynomial(probability=0.2, distribution_index=10),
             leaders=CrowdingDistanceArchive(100),
@@ -139,7 +139,7 @@ for eval in [200 for x in range(30)]:
         # print("Number of iterations: {}".format(algorithm.evaluations))
     # print(json.dumps(results, indent = 4))
 
-    with open("./iteration-wise/qpso_trappist-cdhs-drs-iteration"+str(eval)+".json", "w") as f:
+    with open("./iteration-wise/qpso_trappist-cdhs-crs-iteration"+str(eval)+".json", "w") as f:
         f.write(json.dumps(results, indent=4))
 
 
