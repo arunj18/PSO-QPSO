@@ -55,3 +55,20 @@ The current release of jMetalPy (v0.5.1) contains the following components:
 
 ## License
 This project is licensed under the terms of the MIT - see the [LICENSE](LICENSE) file for details.
+
+** EDITS
+
+Chaotic Quantum PSO is one of the algorithms along with a lorenz map initialization. They've been added to the algorithm part of MOQPSO. The chaos initialization has been added to core under problem.py.
+
+Example use as in test.py: 
+
+algorithm = MOQPSO(
+            problem=problem,
+            swarm_size=1000,
+            max_evaluations=eval,
+            mutation=Polynomial(probability=0.2, distribution_index=10),
+            leaders=CrowdingDistanceArchive(100),
+            reference_point=  [0] * problem.number_of_objectives ,
+            levy = 1,
+            levy_decay= 1
+        )

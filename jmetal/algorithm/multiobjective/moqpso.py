@@ -35,13 +35,15 @@ class MOQPSO(ParticleSwarmOptimization):
                  reference_point = None,
                  levy: int = 0,
                  levy_decay: int = 0):
-        """ This class implements the Multi-Objective variant of Quantum Behaved PSO algorithm  as described in
+        """ This class implements the Multi-Objective variant of chaotic Quantum Behaved Particle Swarm Optimization
         :param problem: The problem to solve.
         :param swarm_size: Swarm size.
         :param max_evaluations: Maximum number of evaluations.
         :param mutation: Mutation operator.
         :param leaders: Archive for leaders.
         :param evaluator: An evaluator object to evaluate the solutions in the population.
+        :param levy: turn on levy walk
+        :param levy_decay: turn on levy decay 
         """
         super(MOQPSO, self).__init__()
         self.problem = problem

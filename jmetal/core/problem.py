@@ -111,7 +111,7 @@ class FloatProblem(Problem[FloatSolution]):
         self.upper_bound = None
 
     def create_solution(self,swarm_size = 1) -> FloatSolution:
-        if swarm_size > 1:
+        if swarm_size > 1: #if not default swarm size, use lorenz map initalization
             return lorenz_map(swarm_size,self.number_of_variables,self.number_of_objectives,self.number_of_constraints,self.lower_bound,self.upper_bound)
         else:
             new_solution = FloatSolution(self.number_of_variables, self.number_of_objectives, self.number_of_constraints,
@@ -168,6 +168,7 @@ def lorenz(x, y, z):
     return x_dot, y_dot, z_dot
 
 def lorenz_map(swarm_size,number_of_variables,number_of_objectives,number_of_constraints,lower_bound,upper_bound):
+    #lorenz map initialization
     chaos_limits = { "x_high" : 22.0 , "x_low" : -22.0 , "y_high" : 30.0 , "y_low" : -30.0 , "z_high" : 55.0 , "z_low" : 0.0 }
     lorenz_sets = number_of_variables//3 + 1
     chaos_set = {}
